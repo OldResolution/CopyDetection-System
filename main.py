@@ -37,6 +37,8 @@ def detect_copyright(ai_text, top_n=3):
     for idx in top_matches:
         results.append({
             "similarity_score": round(sim_scores[idx], 3),
+            "author": df['author'].iloc[idx],
+            "book_title": df['book_title'].iloc[idx],
             "reference_text": df['text_content'].iloc[idx][:300] + "..."  # first 300 chars
         })
 
@@ -45,7 +47,7 @@ def detect_copyright(ai_text, top_n=3):
 
 if __name__ == "__main__":
     # Step 1: Load dataset
-    df = pd.read_excel("excel_dataset/processed_books_dataset-1.xlsx")
+    df = pd.read_excel("Excel_Dataset/processed_books_dataset-1.xlsx")
 
     # Step 2: Build TF-IDF matrix
     vectorizer = TfidfVectorizer(stop_words="english", max_features=5000)
@@ -53,8 +55,8 @@ if __name__ == "__main__":
 
     # Step 3: Example AI-generated text
     ai_output = """
-    The ring had a mysterious power, whispered about in dark corners of the Shire.
-    Those who touched it felt a strange burden, as if their fate was no longer their own.
+    custom, whose origin was .
+    the.
     """
 
     # Run detection
@@ -62,5 +64,6 @@ if __name__ == "__main__":
 
     print("\n🔎 Top Matches:")
     for m in matches:
-        print(f"Score: {m['similarity_score']} | Ref: {m['reference_text']}")
+        print(f"Score: {m['similarity_score']} | Author: {m['author']} | Book: {m['book_title']}")
+        print(f"Ref: {m['reference_text']}\n")
 
