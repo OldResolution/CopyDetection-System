@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plagiarism Detection System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: "📄";
+            font-size: 1.2em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-button {
+            display: block;
+            padding: 15px 30px;
+            background: white;
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            color: #667eea;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            color: #28a745;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .score-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .score-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .score-card h3 {
+            color: #555;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .score-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .score-bar {
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+            transition: width 0.5s ease;
+        }
+
+        .risk-low { color: #28a745; }
+        .risk-medium { color: #ffc107; }
+        .risk-high { color: #dc3545; }
+
+        .recommendation {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 5px solid;
+        }
+
+        .recommendation.low { border-left-color: #28a745; }
+        .recommendation.medium { border-left-color: #ffc107; }
+        .recommendation.high { border-left-color: #dc3545; }
+
+        .feature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .feature-table th,
+        .feature-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .feature-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .feature-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #dc3545;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .status-online {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-offline {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            .btn-secondary {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="statusIndicator" class="status-indicator status-offline">
+        🔴 Checking connection...
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Plagiarism Detection System</h1>
+            <p>Advanced AI-Powered Text Analysis</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">N-gram • Stylometric • Semantic Analysis</p>
+        </div>
+
+        <div class="main-content">
+            <div class="upload-section">
+                <div class="section-title">Submit Text for Analysis</div>
+                
+                <div class="input-group">
+                    <label>Paste or type your essay text below:</label>
+                    <textarea id="essayText" placeholder="Enter your essay text here...
+
+For example:
+Artificial intelligence is transforming the way we live and work. Machine learning algorithms are being used in various industries..."></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label>Or upload a text file:</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="fileInput" accept=".txt">
+                        <label for="fileInput" class="file-button">
+                            📁 Choose File
+                        </label>
+                        <div id="fileName" class="file-name"></div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button class="btn btn-primary" onclick="analyzeText()" id="analyzeBtn">
+                        🔍 Analyze for Plagiarism
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearForm()">
+                        🗑️ Clear
+                    </button>
+                </div>
+            </div>
+
+            <div class="error" id="error">
+                <strong>⚠️ Error:</strong> <span id="errorMessage"></span>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="font-size: 1.2em; margin-bottom: 10px;">Analyzing your text...</p>
+                <p style="color: #666; font-size: 0.9em;">
+                    Running N-gram, Stylometric, and Semantic analysis<br>
+                    This may take 10-30 seconds on first run
+                </p>
+            </div>
+
+            <div class="results" id="results">
+                <div class="result-card">
+                    <h2 style="margin-bottom: 20px;">📊 Analysis Results</h2>
+                    
+                    <div class="score-display">
+                        <div class="score-card">
+                            <h3>N-gram Analysis</h3>
+                            <div class="score-value" id="ngramScore">0%</div>
+                            <div class="score-bar">
+                                <div class="score-bar-fill" id="ngramBar" style="width: 0%"></div>
+                            </div>
+                            <p style="font-size: 0.85em; color: #666; margin-top: 10px;">Text overlap detection</p>
+                        </div>
+
+                        <div class="score-card">
+                            <h3>Stylometric Analysis</h3>
+                            <div class="score-value" id="stylometricScore">0%</div>
+                            <div class="score-bar">
+                                <div class="score-bar-fill" id="stylometricBar" style="width: 0%"></div>
+                            </div>
+                            <p style="font-size: 0.85em; color: #666; margin-top: 10px;">Writing style similarity</p>
+                        </div>
+
+                        <div class="score-card">
+                            <h3>Semantic Analysis</h3>
+                            <div class="score-value" id="semanticScore">0%</div>
+                            <div class="score-bar">
+                                <div class="score-bar-fill" id="semanticBar" style="width: 0%"></div>
+                            </div>
+                            <p style="font-size: 0.85em; color: #666; margin-top: 10px;">Meaning similarity</p>
+                        </div>
+
+                        <div class="score-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <h3 style="color: white;">Combined Score</h3>
+                            <div class="score-value" id="combinedScore" style="color: white;">0%</div>
+                            <div class="score-bar">
+                                <div class="score-bar-fill" id="combinedBar" style="width: 0%; background: white;"></div>
+                            </div>
+                            <p style="font-size: 0.85em; margin-top: 10px; opacity: 0.9;">Final assessment</p>
+                        </div>
+                    </div>
+
+                    <div id="recommendation" class="recommendation">
+                        <h3>🎯 Recommendation</h3>
+                        <p id="recommendationText"></p>
+                    </div>
+
+                    <div style="margin-top: 30px;">
+                        <h3>📈 Detailed Feature Comparison</h3>
+                        <table class="feature-table" id="featureTable">
+                            <thead>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>Essay Value</th>
+                                    <th>Reference Value</th>
+                                    <th>Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody id="featureTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'http://localhost:5000';
+        
+        // Check backend connection on page load
+        window.addEventListener('load', checkBackendStatus);
+        
+        async function checkBackendStatus() {
+            try {
+                const response = await fetch(`${API_URL}/health`, { 
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                const data = await response.json();
+                
+                const indicator = document.getElementById('statusIndicator');
+                if (data.status === 'ok') {
+                    indicator.textContent = '🟢 Backend Connected';
+                    indicator.className = 'status-indicator status-online';
+                    console.log('✓ Backend is online:', data);
+                } else {
+                    indicator.textContent = '🟡 Backend Partially Ready';
+                    indicator.className = 'status-indicator status-offline';
+                }
+            } catch (error) {
+                const indicator = document.getElementById('statusIndicator');
+                indicator.textContent = '🔴 Backend Offline';
+                indicator.className = 'status-indicator status-offline';
+                console.error('✗ Backend connection failed:', error);
+                
+                showError(`Cannot connect to backend server. Please make sure:
+1. Flask server is running (run: python app.py)
+2. Server is accessible at ${API_URL}
+3. No firewall is blocking port 5000
+
+Error: ${error.message}`);
+            }
+        }
+
+        // Handle file upload
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = `Selected: ${file.name}`;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('essayText').value = e.target.result;
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function clearForm() {
+            document.getElementById('essayText').value = '';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileName').textContent = '';
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('error').classList.remove('active');
+        }
+
+        async function analyzeText() {
+            const text = document.getElementById('essayText').value.trim();
+
+            if (!text) {
+                showError('Please enter some text to analyze.');
+                return;
+            }
+
+            // Hide previous results and errors
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('error').classList.remove('active');
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('analyzeBtn').disabled = true;
+
+            // Prepare data to send to backend
+            const data = {
+                essay_text: text
+            };
+
+            try {
+                console.log('Sending analysis request...');
+                const response = await fetch(`${API_URL}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                    mode: 'cors'
+                });
+
+                console.log('Response received:', response.status);
+                const result = await response.json();
+
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('analyzeBtn').disabled = false;
+
+                if (result.error) {
+                    showError(result.error);
+                    return;
+                }
+
+                console.log('Analysis results:', result);
+                displayResults(result);
+                
+            } catch (error) {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('analyzeBtn').disabled = false;
+                
+                console.error('Analysis error:', error);
+                showError(`Failed to connect to the backend server.
+
+Error: ${error.message}
+
+Troubleshooting:
+1. Make sure Flask server is running: python app.py
+2. Check if server started successfully at ${API_URL}
+3. Look for error messages in the Flask console
+4. Verify CORS is enabled (flask-cors installed)`);
+            }
+        }
+
+        function displayResults(data) {
+            // Display scores
+            updateScore('ngramScore', 'ngramBar', data.avg_ngram_score);
+            updateScore('stylometricScore', 'stylometricBar', data.stylometric_score);
+            updateScore('semanticScore', 'semanticBar', data.semantic_score);
+            updateScore('combinedScore', 'combinedBar', data.combined_score);
+
+            // Display recommendation
+            const recommendation = getRecommendation(data.combined_score);
+            document.getElementById('recommendationText').innerHTML = recommendation.text;
+            document.getElementById('recommendation').className = `recommendation ${recommendation.level}`;
+
+            // Display feature table
+            displayFeatureTable(data.essay_features, data.reference_features, data.feature_names);
+
+            // Show results
+            document.getElementById('results').classList.add('active');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateScore(scoreId, barId, value) {
+            const percentage = (value * 100).toFixed(1);
+            document.getElementById(scoreId).textContent = `${percentage}%`;
+            document.getElementById(barId).style.width = `${percentage}%`;
+            
+            // Color coding
+            const element = document.getElementById(scoreId);
+            if (value >= 0.7) {
+                element.className = 'score-value risk-high';
+            } else if (value >= 0.4) {
+                element.className = 'score-value risk-medium';
+            } else {
+                element.className = 'score-value risk-low';
+            }
+        }
+
+        function getRecommendation(score) {
+            if (score >= 0.7) {
+                return {
+                    level: 'high',
+                    text: `
+                        <strong>⚠️ HIGH Plagiarism Risk Detected!</strong><br><br>
+                        • Review the text thoroughly for potential copying<br>
+                        • Check for proper citations and references<br>
+                        • Consider manual verification of suspicious sections<br>
+                        • Consult with an instructor or supervisor
+                    `
+                };
+            } else if (score >= 0.4) {
+                return {
+                    level: 'medium',
+                    text: `
+                        <strong>⚠️ MEDIUM Plagiarism Risk Detected</strong><br><br>
+                        • Some similarities found that warrant investigation<br>
+                        • Verify originality of key passages<br>
+                        • Ensure proper attribution where needed<br>
+                        • Review and revise questionable sections
+                    `
+                };
+            } else if (score >= 0.2) {
+                return {
+                    level: 'low',
+                    text: `
+                        <strong>ℹ️ LOW Plagiarism Risk</strong><br><br>
+                        • Minor similarities detected, likely coincidental<br>
+                        • Standard review process recommended<br>
+                        • Overall text appears acceptable
+                    `
+                };
+            } else {
+                return {
+                    level: 'low',
+                    text: `
+                        <strong>✅ MINIMAL Plagiarism Risk</strong><br><br>
+                        • Text appears to be original<br>
+                        • No significant similarities detected<br>
+                        • Good job on original writing!
+                    `
+                };
+            }
+        }
+
+        function displayFeatureTable(essayFeatures, refFeatures, featureNames) {
+            const tbody = document.getElementById('featureTableBody');
+            tbody.innerHTML = '';
+
+            for (let i = 0; i < featureNames.length; i++) {
+                const row = tbody.insertRow();
+                const diff = Math.abs(essayFeatures[i] - refFeatures[i]);
+                
+                row.innerHTML = `
+                    <td><strong>${featureNames[i]}</strong></td>
+                    <td>${essayFeatures[i].toFixed(3)}</td>
+                    <td>${refFeatures[i].toFixed(3)}</td>
+                    <td>${diff.toFixed(3)}</td>
+                `;
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('error').classList.add('active');
+            document.getElementById('error').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
