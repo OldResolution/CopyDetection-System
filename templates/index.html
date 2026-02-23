@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copyright Detection System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); min-height: 100vh; padding: 20px; color: #333; }
+        
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #09203f 0%, #537895 100%); color: white; padding: 40px; text-align: center; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .main-content { padding: 40px; }
+        .upload-section { background: #f8f9fa; border-radius: 15px; padding: 30px; margin-bottom: 30px; border: 1px solid #eee; }
+        .section-title { font-size: 1.5em; color: #333; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-weight: 600; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 10px; color: #555; font-weight: 600; }
+        textarea { width: 100%; min-height: 150px; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-family: inherit; font-size: 14px; resize: vertical; transition: border-color 0.3s; }
+        textarea:focus { outline: none; border-color: #00f2fe; }
+        .file-input-wrapper { position: relative; display: flex; align-items: center; gap: 15px; }
+        input[type="file"] { display: none; }
+        .file-button { padding: 12px 25px; background: white; border: 2px dashed #09203f; border-radius: 10px; color: #09203f; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .file-button:hover { background: #09203f; color: white; }
+        .file-name { color: #28a745; font-weight: 500; font-size: 0.95em; }
+        .btn-container { margin-top: 30px; display: flex; gap: 15px; }
+        .btn { padding: 15px 30px; border: none; border-radius: 10px; font-size: 1.1em; font-weight: 600; cursor: pointer; transition: transform 0.2s; color: white; flex: 1; }
+        .btn-primary { background: linear-gradient(135deg, #09203f 0%, #537895 100%); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(9, 32, 63, 0.3); }
+        .btn-primary:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: #6c757d; flex: 0 0 150px; }
+        .btn-secondary:hover { background: #5a6268; transform: translateY(-2px); }
+
+        /* Report Button */
+        .report-cta {
+            display: none;
+            margin-top: 24px;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            border-radius: 14px;
+            padding: 24px 30px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .report-cta.visible { display: block; animation: fadeIn 0.4s ease; }
+        .btn-report {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 14px 32px; border: none; border-radius: 10px;
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            color: #000; font-size: 1.05em; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 20px rgba(247,151,30,0.4);
+        }
+        .btn-report:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(247,151,30,0.55); }
+        .report-cta p { color: rgba(255,255,255,0.65); font-size: 0.82em; margin-top: 10px; }
+
+        .loading { display: none; text-align: center; padding: 40px; }
+        .loading.active { display: block; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #09203f; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error { background: #fff2f2; color: #d63031; padding: 15px; border-radius: 10px; margin: 20px 0; border-left: 5px solid #d63031; display: none; }
+        .error.active { display: block; }
+        .results { display: none; animation: fadeIn 0.5s ease; }
+        .results.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .result-card { background: #fff; border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        .score-display { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
+        .score-card { background: #f8f9fa; border-radius: 12px; padding: 20px; text-align: center; border: 1px solid #eee; }
+        .score-card h3 { font-size: 0.85em; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .score-value { font-size: 2.5em; font-weight: 700; margin: 10px 0; color: #333; }
+        .score-bar { height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+        .score-bar-fill { height: 100%; width: 0%; transition: width 1s ease; }
+        .risk-low { color: #28a745 !important; } .fill-low { background: #28a745; }
+        .risk-medium { color: #ffc107 !important; } .fill-medium { background: #ffc107; }
+        .risk-high { color: #dc3545 !important; } .fill-high { background: #dc3545; }
+        .score-card.combined { background: linear-gradient(135deg, #09203f 0%, #537895 100%); color: white; border: none; }
+        .score-card.combined h3 { color: rgba(255,255,255,0.8); }
+        .score-card.combined .score-value { color: white; }
+        .score-card.combined .score-bar { background: rgba(255,255,255,0.2); }
+        .score-card.combined .score-bar-fill { background: white; }
+        .recommendation { padding: 20px; border-radius: 10px; margin-top: 20px; border-left: 5px solid #ccc; background: #fafafa; }
+        .book-item { background: #f8f9fa; border-radius: 10px; padding: 20px; margin-bottom: 15px; border-left: 5px solid #ddd; }
+        .book-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .book-title { font-weight: bold; font-size: 1.1em; }
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; color: white; }
+        .feature-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95em; }
+        .feature-table th { background: #f1f3f5; padding: 12px; text-align: left; font-weight: 600; color: #555; }
+        .feature-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        @media (max-width: 768px) {
+            .btn-container { flex-direction: column; }
+            .score-display { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Copyright Detection System</h1>
+            <p>Advanced Stylometric, Semantic & N-gram Analysis</p>
+        </div>
+
+        <div class="main-content">
+            <div class="upload-section">
+                <div class="section-title">📄 Check Content</div>
+                <div class="input-group">
+                    <label>Paste Text</label>
+                    <textarea id="essayText" placeholder="Paste document text here (min 50 characters)..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label>Or Upload File (PDF/TXT)</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="fileInput" accept=".pdf,.txt">
+                        <label for="fileInput" class="file-button">Choose File</label>
+                        <span id="fileName" class="file-name">No file selected</span>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-primary" onclick="analyzeText()" id="analyzeBtn">Analyze for Copyright</button>
+                    <button class="btn btn-secondary" onclick="clearForm()">Reset</button>
+                </div>
+            </div>
+
+            <div class="error" id="errorBox">
+                <strong>Error:</strong> <span id="errorMessage"></span>
+            </div>
+
+            <div class="loading" id="loadingBox">
+                <div class="spinner"></div>
+                <h3>Scanning Database...</h3>
+                <p>Comparing features, analyzing stylometry, and calculating semantic embeddings.</p>
+            </div>
+
+            <div class="results" id="resultsBox">
+                <div class="result-card">
+                    <h2 style="margin-bottom: 15px;">📊 Copyright Risk Report</h2>
+                    <div class="score-display">
+                        <div class="score-card">
+                            <h3>N-gram Overlap</h3>
+                            <div class="score-value" id="ngramVal">0%</div>
+                            <div class="score-bar"><div class="score-bar-fill" id="ngramBar"></div></div>
+                        </div>
+                        <div class="score-card">
+                            <h3>Stylometry</h3>
+                            <div class="score-value" id="styloVal">0%</div>
+                            <div class="score-bar"><div class="score-bar-fill" id="styloBar"></div></div>
+                        </div>
+                        <div class="score-card">
+                            <h3>Semantic Meaning</h3>
+                            <div class="score-value" id="semVal">0%</div>
+                            <div class="score-bar"><div class="score-bar-fill" id="semBar"></div></div>
+                        </div>
+                        <div class="score-card combined">
+                            <h3>Infringement Risk</h3>
+                            <div class="score-value" id="combinedVal">0%</div>
+                            <div class="score-bar"><div class="score-bar-fill" id="combinedBar"></div></div>
+                        </div>
+                    </div>
+
+                    <div id="recommendationBox" class="recommendation">
+                        <h3 id="recTitle">Recommendation</h3>
+                        <p id="recText">Analysis will appear here.</p>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h2 style="margin-bottom: 15px;">🏆 Detected Sources</h2>
+                    <div id="booksList"></div>
+                </div>
+
+                <div class="result-card">
+                    <h2 style="margin-bottom: 15px;">📈 Stylometric Fingerprint</h2>
+                    <div style="overflow-x: auto;">
+                        <table class="feature-table">
+                            <thead>
+                                <tr>
+                                    <th>Linguistic Feature</th>
+                                    <th>Your Text</th>
+                                </tr>
+                            </thead>
+                            <tbody id="featureTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ── GENERATE DETAILED REPORT BUTTON ── -->
+                <div class="report-cta" id="reportCta">
+                    <button class="btn-report" onclick="openDetailedReport()">
+                        📑 Generate Detailed Report
+                    </button>
+                    <p>N-gram frequency tables &nbsp;·&nbsp; Repeated phrase highlighting &nbsp;·&nbsp; Paraphrase detection &nbsp;·&nbsp; Sentence risk heatmap &nbsp;·&nbsp; Vocabulary stats</p>
+                </div>
+
+            </div><!-- /resultsBox -->
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/analyze';
+
+        // Stores last analysis + text for report generation
+        let _lastAnalysis = null;
+        let _lastText     = '';
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = file.name;
+                if (file.name.toLowerCase().endsWith('.txt')) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        document.getElementById('essayText').value = evt.target.result;
+                    };
+                    reader.readAsText(file);
+                } else {
+                    document.getElementById('essayText').value = `[${file.name} ready for upload]`;
+                }
+            }
+        });
+
+        function clearForm() {
+            document.getElementById('essayText').value = '';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileName').textContent = 'No file selected';
+            document.getElementById('resultsBox').classList.remove('active');
+            document.getElementById('errorBox').classList.remove('active');
+            document.getElementById('reportCta').classList.remove('visible');
+            _lastAnalysis = null;
+            _lastText = '';
+        }
+
+        async function analyzeText() {
+            const fileInput = document.getElementById('fileInput');
+            const textVal   = document.getElementById('essayText').value;
+
+            if (fileInput.files.length === 0 && textVal.trim().length < 20) {
+                showError("Please enter text or upload a file.");
+                return;
+            }
+
+            document.getElementById('resultsBox').classList.remove('active');
+            document.getElementById('errorBox').classList.remove('active');
+            document.getElementById('reportCta').classList.remove('visible');
+            document.getElementById('loadingBox').classList.add('active');
+            document.getElementById('analyzeBtn').disabled = true;
+
+            // Capture text before sending
+            _lastText = textVal;
+
+            try {
+                let response;
+                if (fileInput.files.length > 0) {
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+                    response = await fetch(API_URL, { method: 'POST', body: formData });
+                } else {
+                    response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ essay_text: textVal })
+                    });
+                }
+
+                const data = await response.json();
+                document.getElementById('loadingBox').classList.remove('active');
+                document.getElementById('analyzeBtn').disabled = false;
+
+                if (!response.ok || data.error) throw new Error(data.error || "Server error");
+
+                _lastAnalysis = data;
+                displayResults(data);
+
+            } catch (err) {
+                document.getElementById('loadingBox').classList.remove('active');
+                document.getElementById('analyzeBtn').disabled = false;
+                showError(err.message);
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('errorMessage').textContent = msg;
+            document.getElementById('errorBox').classList.add('active');
+        }
+
+        function displayResults(data) {
+            let topBook = (data.plagiarized_books && data.plagiarized_books.length > 0) ? data.plagiarized_books[0] : null;
+            let combined = data.combined_score || 0;
+
+            if (combined < 0.3) { topBook = null; combined = 0; }
+
+            let ngram = topBook ? topBook.ngram_score : 0;
+            let stylo = topBook ? topBook.stylometric_score : 0;
+            let sem   = topBook ? topBook.semantic_score : 0;
+
+            updateBar('ngram', ngram);
+            updateBar('stylo', stylo);
+            updateBar('sem', sem);
+
+            document.getElementById('combinedVal').innerText = (combined * 100).toFixed(1) + "%";
+            document.getElementById('combinedBar').style.width = (combined * 100) + "%";
+
+            const recBox   = document.getElementById('recommendationBox');
+            const recTitle = document.getElementById('recTitle');
+            const recText  = document.getElementById('recText');
+            recBox.className = 'recommendation';
+
+            if (combined >= 0.7) {
+                recBox.style.borderLeftColor = '#dc3545';
+                recTitle.innerText = "⚠️ CRITICAL RISK";
+                recText.innerText  = "High probability of copyright infringement found in database.";
+            } else if (combined >= 0.4) {
+                recBox.style.borderLeftColor = '#ffc107';
+                recTitle.innerText = "⚡ Moderate Risk";
+                recText.innerText  = "Stylistic or semantic similarities detected. Verify sources.";
+            } else {
+                recBox.style.borderLeftColor = '#28a745';
+                recTitle.innerText = "✅ Safe / Original";
+                recText.innerText  = "No significant matches found in the copyright database.";
+            }
+
+            // Books list
+            const list = document.getElementById('booksList');
+            list.innerHTML = "";
+            const validBooks = (data.plagiarized_books || []).filter(b => b.combined_score >= 0.3);
+
+            if (validBooks.length > 0) {
+                validBooks.forEach(book => {
+                    let badgeColor = book.combined_score > 0.6 ? '#dc3545' : '#ffc107';
+                    list.innerHTML += `
+                        <div class="book-item">
+                            <div class="book-header">
+                                <span class="book-title">${book.book_title}</span>
+                                <span class="badge" style="background:${badgeColor}">Match: ${(book.combined_score*100).toFixed(0)}%</span>
+                            </div>
+                            <div style="font-size:0.9em; color:#666;">Author: ${book.book_author}</div>
+                            <div style="margin-top:5px; font-size:0.85em; color:#444;">
+                                N-gram: ${(book.ngram_score*100).toFixed(1)}% |
+                                Stylo: ${(book.stylometric_score*100).toFixed(1)}% |
+                                Semantic: ${(book.semantic_score*100).toFixed(1)}%
+                            </div>
+                        </div>`;
+                });
+            } else {
+                list.innerHTML = `<div style="padding:15px; color:#666; font-style:italic;">No significant database match found.</div>`;
+            }
+
+            // Features table
+            const tbody = document.getElementById('featureTableBody');
+            tbody.innerHTML = "";
+            if (data.feature_names && data.essay_features) {
+                data.feature_names.forEach((name, i) => {
+                    let val = data.essay_features[i] || 0;
+                    tbody.innerHTML += `<tr><td>${name}</td><td>${val.toFixed(2)}</td></tr>`;
+                });
+            }
+
+            document.getElementById('resultsBox').classList.add('active');
+
+            // Show the Generate Report button
+            document.getElementById('reportCta').classList.add('visible');
+        }
+
+        function updateBar(prefix, value) {
+            let pct = (value * 100).toFixed(1);
+            let elVal = document.getElementById(prefix + 'Val');
+            let elBar = document.getElementById(prefix + 'Bar');
+            elVal.innerText = pct + "%";
+            elBar.style.width = pct + "%";
+            elVal.className = 'score-value';
+            elBar.className = 'score-bar-fill';
+            if (value >= 0.7)      { elVal.classList.add('risk-high');   elBar.classList.add('fill-high'); }
+            else if (value >= 0.4) { elVal.classList.add('risk-medium'); elBar.classList.add('fill-medium'); }
+            else                   { elVal.classList.add('risk-low');    elBar.classList.add('fill-low'); }
+        }
+
+        function openDetailedReport() {
+            if (!_lastAnalysis || !_lastText) {
+                alert('Please run an analysis first.');
+                return;
+            }
+            try {
+                const payload = JSON.stringify({ text: _lastText, analysis: _lastAnalysis });
+                localStorage.setItem('__reportPayload', payload);
+                sessionStorage.setItem('__reportPayload', payload);
+                window.open('/report-viewer', '_blank');
+            } catch (e) {
+                alert('Could not open report: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
