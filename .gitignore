@@ -8,9 +8,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Large Dataset Files
-The-Best-Sci-Fi-Books-of-All-Time-master/
-Excel_Dataset/
+
 
 # OS generated files
 .DS_Store
