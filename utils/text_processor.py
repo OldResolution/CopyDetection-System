@@ -4,6 +4,7 @@ import re
 # Safe NLTK Download
 try:
     nltk.download('punkt', quiet=True)
+    nltk.download('punkt_tab', quiet=True)
     nltk.download('stopwords', quiet=True)
 except Exception as e:
     print(f"Warning: NLTK download failed: {e}")
