@@ -167,7 +167,13 @@ class AdvancedPlagiarismDetector:
                     elif ngram_s > 0.3:
                         combined = (ngram_s * 0.5) + (sem_s * 0.3) + (stylo_s * 0.2)
                     else:
-                        combined = (sem_s * 0.4) + (ngram_s * 0.3) + (stylo_s * 0.3)
+                        # Heavy penalty if there is no exact phrasing match and semantic match is weak.
+                        # Do not let stylometric writing style alone push the score > 0.3
+                        combined = (sem_s * 0.5) + (ngram_s * 0.4) + (stylo_s * 0.1)
+
+                    # Further penalty for strict false-positive prevention on texts loosely matching semantics
+                    if sem_s < 0.65 and ngram_s < 0.05:
+                        combined *= 0.4 
 
                     if combined < 0.3: continue 
 
