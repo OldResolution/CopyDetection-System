@@ -268,6 +268,12 @@
                 if (!response.ok || data.error) throw new Error(data.error || "Server error");
 
                 _lastAnalysis = data;
+                
+                // CRITICAL: If the backend extracted text from a PDF, update our cached text!
+                if (data.extracted_text) {
+                    _lastText = data.extracted_text;
+                }
+
                 displayResults(data);
 
             } catch (err) {
