@@ -1,0 +1,138 @@
+2026-02-23 23:17:02,322 | INFO | Logging initialized. Log file: Excel_Dataset\ingestion_20260223_231702.log
+2026-02-23 23:17:02,323 | INFO | ============================================================
+2026-02-23 23:17:02,323 | INFO | PDF INGESTION STARTED
+2026-02-23 23:17:02,323 | INFO | Input folder: SCI_FI
+2026-02-23 23:17:02,323 | INFO | Output folder: Excel_Dataset
+2026-02-23 23:17:02,323 | INFO | Found 33 PDFs
+2026-02-23 23:17:02,324 | INFO | Max workers: 4
+2026-02-23 23:17:02,324 | INFO | Skip existing: False
+2026-02-23 23:17:02,324 | INFO | Generate clean output: True
+2026-02-23 23:17:02,335 | INFO | ============================================================
+2026-02-23 23:17:02,335 | INFO | 🚀 Starting parallel processing with 4 workers...
+2026-02-23 23:17:02,336 | INFO | 📖 Processing: scf(1).pdf...
+2026-02-23 23:17:02,337 | INFO | 📖 Processing: scf(10).pdf...
+2026-02-23 23:17:02,342 | INFO | 📖 Processing: scf(11).pdf...
+2026-02-23 23:17:02,361 | INFO | 📖 Processing: scf(12).pdf...
+2026-02-23 23:17:28,767 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 441 pages) to: scf(1).txt
+2026-02-23 23:17:29,839 | INFO | ✅ Saved clean text to: scf(1)_clean.txt
+2026-02-23 23:17:29,858 | INFO | 📖 Processing: scf(13).pdf...
+2026-02-23 23:17:34,788 | INFO |    🔄 Used OCR fallback for 2/481 middle pages
+2026-02-23 23:17:35,392 | INFO |    🔄 Used OCR fallback for 3/892 middle pages
+2026-02-23 23:17:42,656 | INFO |    🔄 Used OCR fallback for 9/571 middle pages
+2026-02-23 23:17:51,904 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 892 pages) to: scf(10).txt
+2026-02-23 23:17:54,014 | INFO | ✅ Saved clean text to: scf(10)_clean.txt
+2026-02-23 23:17:54,019 | INFO | 📖 Processing: scf(14).pdf...
+2026-02-23 23:18:00,584 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 571 pages) to: scf(12).txt
+2026-02-23 23:18:01,724 | INFO | ✅ Saved clean text to: scf(12)_clean.txt
+2026-02-23 23:18:01,729 | INFO | 📖 Processing: scf(15).pdf...
+2026-02-23 23:18:03,306 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 481 pages) to: scf(11).txt
+2026-02-23 23:18:03,808 | INFO | ✅ Saved clean text to: scf(11)_clean.txt
+2026-02-23 23:18:03,820 | INFO | 📖 Processing: scf(16).pdf...
+2026-02-23 23:18:08,291 | INFO |    🔄 Used OCR fallback for 5/163 middle pages
+2026-02-23 23:18:29,568 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 163 pages) to: scf(13).txt
+2026-02-23 23:18:29,903 | INFO | ✅ Saved clean text to: scf(13)_clean.txt
+2026-02-23 23:18:29,908 | INFO | 📖 Processing: scf(17).pdf...
+2026-02-23 23:18:38,925 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 91 pages) to: scf(15).txt
+2026-02-23 23:18:39,084 | INFO | ✅ Saved clean text to: scf(15)_clean.txt
+2026-02-23 23:18:39,085 | INFO | 📖 Processing: scf(18).pdf...
+2026-02-23 23:18:43,185 | INFO |    🔄 Used OCR fallback for 12/292 middle pages
+2026-02-23 23:18:46,828 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 336 pages) to: scf(14).txt
+2026-02-23 23:18:47,569 | INFO | ✅ Saved clean text to: scf(14)_clean.txt
+2026-02-23 23:18:47,571 | INFO | 📖 Processing: scf(19).pdf...
+2026-02-23 23:18:53,377 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 292 pages) to: scf(16).txt
+2026-02-23 23:18:53,726 | INFO | ✅ Saved clean text to: scf(16)_clean.txt
+2026-02-23 23:18:53,740 | INFO | 📖 Processing: scf(2).pdf...
+2026-02-23 23:19:15,369 | INFO |    🔄 Used OCR fallback for 2/361 middle pages
+2026-02-23 23:19:34,384 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 351 pages) to: scf(2).txt
+2026-02-23 23:19:34,996 | INFO | ✅ Saved clean text to: scf(2)_clean.txt
+2026-02-23 23:19:35,001 | INFO | 📖 Processing: scf(20).pdf...
+2026-02-23 23:19:39,685 | INFO |    🔄 Used OCR fallback for 19/232 middle pages
+2026-02-23 23:19:40,667 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 361 pages) to: scf(19).txt
+2026-02-23 23:19:41,149 | INFO | ✅ Saved clean text to: scf(19)_clean.txt
+2026-02-23 23:19:41,154 | INFO | 📖 Processing: scf(21).pdf...
+2026-02-23 23:19:50,005 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 232 pages) to: scf(17).txt
+2026-02-23 23:19:50,346 | INFO | ✅ Saved clean text to: scf(17)_clean.txt
+2026-02-23 23:19:50,352 | INFO | 📖 Processing: scf(22).pdf...
+2026-02-23 23:19:50,973 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 91 pages) to: scf(18).txt
+2026-02-23 23:19:51,180 | INFO | ✅ Saved clean text to: scf(18)_clean.txt
+2026-02-23 23:19:51,181 | INFO | 📖 Processing: scf(23).pdf...
+2026-02-23 23:19:57,825 | INFO |    🔄 Used OCR fallback for 3/365 middle pages
+2026-02-23 23:19:58,141 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 142 pages) to: scf(21).txt
+2026-02-23 23:19:58,605 | INFO | ✅ Saved clean text to: scf(21)_clean.txt
+2026-02-23 23:19:58,638 | INFO | 📖 Processing: scf(24).pdf...
+2026-02-23 23:20:08,829 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 287 pages) to: scf(22).txt
+2026-02-23 23:20:09,074 | INFO | ✅ Saved clean text to: scf(22)_clean.txt
+2026-02-23 23:20:09,076 | INFO | 📖 Processing: scf(25).pdf...
+2026-02-23 23:20:11,080 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 365 pages) to: scf(20).txt
+2026-02-23 23:20:12,429 | INFO | ✅ Saved clean text to: scf(20)_clean.txt
+2026-02-23 23:20:12,488 | INFO | 📖 Processing: scf(26).pdf...
+2026-02-23 23:20:30,488 | INFO |    🔄 Used OCR fallback for 2/269 middle pages
+2026-02-23 23:20:49,070 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 269 pages) to: scf(25).txt
+2026-02-23 23:20:49,372 | INFO | ✅ Saved clean text to: scf(25)_clean.txt
+2026-02-23 23:20:49,374 | INFO | 📖 Processing: scf(27).pdf...
+2026-02-23 23:21:02,411 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 142 pages) to: scf(26).txt
+2026-02-23 23:21:03,274 | INFO | ✅ Saved clean text to: scf(26)_clean.txt
+2026-02-23 23:21:03,338 | INFO | 📖 Processing: scf(28).pdf...
+2026-02-23 23:21:11,182 | INFO |    🔄 Used OCR fallback for 1/283 middle pages
+2026-02-23 23:21:15,405 | INFO |    🔄 Used OCR fallback for 19/2282 middle pages
+2026-02-23 23:21:23,451 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 283 pages) to: scf(27).txt
+2026-02-23 23:21:24,064 | INFO | ✅ Saved clean text to: scf(27)_clean.txt
+2026-02-23 23:21:24,067 | INFO | 📖 Processing: scf(29).pdf...
+2026-02-23 23:21:27,948 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 2282 pages) to: scf(23).txt
+2026-02-23 23:21:34,563 | INFO | ✅ Saved clean text to: scf(23)_clean.txt
+2026-02-23 23:21:34,587 | INFO | 📖 Processing: scf(3).pdf...
+2026-02-23 23:21:38,824 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 218 pages) to: scf(28).txt
+2026-02-23 23:21:39,814 | INFO | ✅ Saved clean text to: scf(28)_clean.txt
+2026-02-23 23:21:39,850 | INFO | 📖 Processing: scf(30).pdf...
+2026-02-23 23:21:46,151 | INFO |    🔄 Used OCR fallback for 2/104 middle pages
+2026-02-23 23:22:01,154 | INFO |    🔄 Used OCR fallback for 1/303 middle pages
+2026-02-23 23:22:03,069 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 104 pages) to: scf(29).txt
+2026-02-23 23:22:03,534 | INFO | ✅ Saved clean text to: scf(29)_clean.txt
+2026-02-23 23:22:03,566 | INFO | 📖 Processing: scf(31).pdf...
+2026-02-23 23:22:07,303 | INFO |    🔄 Used OCR fallback for 2/409 middle pages
+2026-02-23 23:22:23,886 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 303 pages) to: scf(3).txt
+2026-02-23 23:22:24,839 | INFO | ✅ Saved clean text to: scf(3)_clean.txt
+2026-02-23 23:22:24,845 | INFO | 📖 Processing: scf(32).pdf...
+2026-02-23 23:22:28,677 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 409 pages) to: scf(30).txt
+2026-02-23 23:22:29,449 | INFO | ✅ Saved clean text to: scf(30)_clean.txt
+2026-02-23 23:22:29,906 | INFO | 📖 Processing: scf(33).pdf...
+2026-02-23 23:22:59,519 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 379 pages) to: scf(32).txt
+2026-02-23 23:23:00,826 | INFO | ✅ Saved clean text to: scf(32)_clean.txt
+2026-02-23 23:23:00,833 | INFO | 📖 Processing: scf(4).pdf...
+2026-02-23 23:23:01,707 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 88 pages) to: scf(31).txt
+2026-02-23 23:23:02,209 | INFO | ✅ Saved clean text to: scf(31)_clean.txt
+2026-02-23 23:23:02,212 | INFO | 📖 Processing: scf(5).pdf...
+2026-02-23 23:23:15,773 | INFO |    🔄 Used OCR fallback for 2/387 middle pages
+2026-02-23 23:23:25,240 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 387 pages) to: scf(4).txt
+2026-02-23 23:23:25,847 | INFO | ✅ Saved clean text to: scf(4)_clean.txt
+2026-02-23 23:23:25,853 | INFO | 📖 Processing: scf(6).pdf...
+2026-02-23 23:23:46,088 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 76 pages) to: scf(33).txt
+2026-02-23 23:23:46,423 | INFO | ✅ Saved clean text to: scf(33)_clean.txt
+2026-02-23 23:23:46,425 | INFO | 📖 Processing: scf(7).pdf...
+2026-02-23 23:23:55,645 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 38 pages) to: scf(5).txt
+2026-02-23 23:23:55,804 | INFO | ✅ Saved clean text to: scf(5)_clean.txt
+2026-02-23 23:23:55,805 | INFO | 📖 Processing: scf(8).pdf...
+2026-02-23 23:24:04,521 | INFO |    🔄 Used OCR fallback for 9/170 middle pages
+2026-02-23 23:24:22,858 | INFO |    🔄 Used OCR fallback for 1/152 middle pages
+2026-02-23 23:24:26,259 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 170 pages) to: scf(6).txt
+2026-02-23 23:24:27,276 | INFO | ✅ Saved clean text to: scf(6)_clean.txt
+2026-02-23 23:24:27,292 | INFO | 📖 Processing: scf(9).pdf...
+2026-02-23 23:24:32,476 | INFO |    🔄 Used OCR fallback for 1/1781 middle pages
+2026-02-23 23:24:37,153 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 152 pages) to: scf(8).txt
+2026-02-23 23:24:37,523 | INFO | ✅ Saved clean text to: scf(8)_clean.txt
+2026-02-23 23:25:02,924 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 1781 pages) to: scf(7).txt
+2026-02-23 23:25:07,001 | INFO | ✅ Saved clean text to: scf(7)_clean.txt
+2026-02-23 23:25:16,741 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 339 pages) to: scf(9).txt
+2026-02-23 23:25:17,650 | INFO | ✅ Saved clean text to: scf(9)_clean.txt
+2026-02-23 23:30:19,112 | INFO |    🔄 Used OCR fallback for 321/321 middle pages
+2026-02-23 23:30:21,574 | INFO | ✅ Saved detailed text (OCR: 6 pages, PyMuPDF: 321 pages) to: scf(24).txt
+2026-02-23 23:30:21,791 | INFO | ✅ Saved clean text to: scf(24)_clean.txt
+2026-02-23 23:30:21,795 | INFO | 
+============================================================
+2026-02-23 23:30:21,796 | INFO | INGESTION COMPLETE
+2026-02-23 23:30:21,796 | INFO | ============================================================
+2026-02-23 23:30:21,796 | INFO | Total PDFs found:    33
+2026-02-23 23:30:21,797 | INFO | Successfully processed: 33
+2026-02-23 23:30:21,797 | INFO | Skipped (existing):     0
+2026-02-23 23:30:21,798 | INFO | Failed:                 0
+2026-02-23 23:30:21,798 | INFO | ============================================================
