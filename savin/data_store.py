@@ -14,6 +14,10 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Optional, Tuple
 
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
+
 # Vector DB
 import faiss
 
@@ -26,6 +30,18 @@ try:
     TQDM_AVAILABLE = True
 except ImportError:
     TQDM_AVAILABLE = False
+
+
+# --- CONFIGURATION FROM .env ---
+DATA_FOLDER = os.getenv('DATA_FOLDER', '../Excel_Dataset')
+DB_FOLDER = os.getenv('DB_FOLDER', '../database')
+SQLITE_DB_NAME = os.getenv('SQLITE_DB_NAME', 'documents.db')
+FAISS_INDEX_NAME = os.getenv('FAISS_INDEX_NAME', 'faiss_index.bin')
+FAISS_IDS_NAME = os.getenv('FAISS_IDS_NAME', 'faiss_ids.pkl')
+EMBEDDING_MODEL = os.getenv('EMBEDDING_MODEL', 'all-MiniLM-L6-v2')
+CHUNK_SIZE = int(os.getenv('CHUNK_SIZE', '500'))
+CHUNK_OVERLAP = int(os.getenv('CHUNK_OVERLAP', '50'))
+SKIP_EXISTING = os.getenv('SKIP_EXISTING', 'true').lower() == 'true'
 
 
 class HybridDataStore:
@@ -55,11 +71,11 @@ class HybridDataStore:
         self.db_folder.mkdir(parents=True, exist_ok=True)
         
         # SQLite database path
-        self.sqlite_path = self.db_folder / "documents.db"
+        self.sqlite_path = self.db_folder / SQLITE_DB_NAME
         
         # FAISS index path
-        self.faiss_index_path = self.db_folder / "faiss_index.bin"
-        self.faiss_ids_path = self.db_folder / "faiss_ids.pkl"
+        self.faiss_index_path = self.db_folder / FAISS_INDEX_NAME
+        self.faiss_ids_path = self.db_folder / FAISS_IDS_NAME
         
         # Chunking parameters
         self.chunk_size = chunk_size
@@ -635,17 +651,30 @@ class HybridDataStore:
 
 # --- EXECUTION ---
 if __name__ == "__main__":
-    # Initialize hybrid store
+    print("\n" + "="*60)
+    print("HYBRID DATA STORE - Configuration")
+    print("="*60)
+    print(f"Data folder:      {DATA_FOLDER}")
+    print(f"Database folder:  {DB_FOLDER}")
+    print(f"SQLite DB:        {SQLITE_DB_NAME}")
+    print(f"FAISS index:      {FAISS_INDEX_NAME}")
+    print(f"Embedding model:  {EMBEDDING_MODEL}")
+    print(f"Chunk size:       {CHUNK_SIZE}")
+    print(f"Chunk overlap:    {CHUNK_OVERLAP}")
+    print(f"Skip existing:    {SKIP_EXISTING}")
+    print("="*60 + "\n")
+    
+    # Initialize hybrid store using env config
     store = HybridDataStore(
-        data_folder="../Excel_Dataset",
-        db_folder="database",
-        embedding_model="all-MiniLM-L6-v2",
-        chunk_size=500,
-        chunk_overlap=50
+        data_folder=DATA_FOLDER,
+        db_folder=DB_FOLDER,
+        embedding_model=EMBEDDING_MODEL,
+        chunk_size=CHUNK_SIZE,
+        chunk_overlap=CHUNK_OVERLAP
     )
     
     # Ingest all documents
-    stats = store.ingest_all(skip_existing=False)
+    stats = store.ingest_all(skip_existing=SKIP_EXISTING)
     
     # Print final stats
     print("\n📊 Database Stats:")
