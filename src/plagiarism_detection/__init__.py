@@ -1,0 +1,3 @@
+"""
+Plagiarism detection module.
+"""
