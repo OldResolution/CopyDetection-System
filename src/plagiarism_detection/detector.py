@@ -24,7 +24,7 @@ class AdvancedPlagiarismDetector:
         try:
             print("[INFO] Loading Semantic Model...")
             self.semantic_model = SentenceTransformer(MODEL_NAME)
-            print("✓ Semantic model loaded")
+            print("[OK] Semantic model loaded")
         except:
             self.semantic_model = None
 
@@ -33,7 +33,7 @@ class AdvancedPlagiarismDetector:
 
     def _load_reference_data(self):
         if not os.path.exists(self.reference_file_path):
-            print(f"⚠ ERROR: File not found: {self.reference_file_path}")
+            print(f"ERROR: File not found: {self.reference_file_path}")
             return pd.DataFrame()
         try:
             df = pd.read_excel(self.reference_file_path)
@@ -49,10 +49,10 @@ class AdvancedPlagiarismDetector:
             df['book_title'] = df[title_col] if title_col in cols else "Unknown Title"
             df['book_author'] = df[author_col] if author_col in cols else "Unknown Author"
             
-            print(f"✓ Loaded {len(df)} valid books.")
+            print(f"[OK] Loaded {len(df)} valid books.")
             return df
         except Exception as e:
-            print(f"✗ Data load error: {e}")
+            print(f"[ERROR] Data load error: {e}")
             return pd.DataFrame()
 
     def _precompute_simple_features(self):
@@ -69,7 +69,7 @@ class AdvancedPlagiarismDetector:
                 tokens_clean_list.append([])
         self.books_df['tokens_raw'] = tokens_raw_list
         self.books_df['tokens_clean'] = tokens_clean_list
-        print("✓ Tokens ready.")
+        print("[OK] Tokens ready.")
 
     def calculate_chunked_semantic_similarity(self, essay, book_text):
         if not self.semantic_model: return 0.0
