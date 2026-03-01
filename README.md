@@ -13,7 +13,8 @@ A professional plagiarism and copyright infringement detection system using adva
 
 ## 🚀 Features
 
-- **Multi-Phase Plagiarism Detection**: Combines Jaccard similarity, n-gram analysis, semantic embeddings, and stylometric features
+- **Multi-Phase Plagiarism Detection**: Combines FAISS vector search, n-gram analysis, semantic embeddings, and stylometric features
+- **Fast Database Search**: Uses SQLite + FAISS for instant semantic similarity matching across millions of words
 - **Risk Classification**: SAFE, MODERATE, HIGH, and CRITICAL risk levels
 - **Detailed Reporting**: Comprehensive analysis including:
   - N-gram frequency analysis (bigrams, trigrams, 4-grams)
@@ -40,7 +41,8 @@ CopyDetection-System/
 │   │   └── routes.py             # REST endpoints
 │   ├── plagiarism_detection/
 │   │   ├── __init__.py
-│   │   └── detector.py           # Core detection engine (3-phase analysis)
+│   │   ├── detector.py           # Legacy Excel-based detector (deprecated)
+│   │   └── db_detector.py        # Database detector (SQLite + FAISS) [ACTIVE]
 │   ├── reporting/
 │   │   ├── __init__.py
 │   │   └── generator.py          # Detailed report generation
@@ -62,14 +64,17 @@ CopyDetection-System/
 │   ├── db_info.py               # CLI database statistics
 │   └── pdf.py                   # Advanced PDF extraction with OCR
 │
-├── test_data/                   # Test and reference data
-│   ├── Excel_Dataset/           # 33 reference books [REQUIRED]
+├── test_data/                   # Source data for database population
+│   ├── Excel_Dataset/           # 33 reference books (source files)
 │   │   └── processed_books_dataset-1.xlsx
 │   └── SCI_FI/                  # 33 sample PDF books [OPTIONAL]
 │
 ├── tests/                       # Unit tests (future)
 │
-├── database/                    # Runtime generated data (git-ignored)
+├── database/                    # PRIMARY STORAGE: SQLite + FAISS [REQUIRED]
+│   ├── documents.db             # Document metadata and text (SQLite)
+│   ├── faiss_index.bin          # Vector embeddings (FAISS)
+│   └── faiss_ids.pkl            # Chunk ID mappings
 │
 ├── docs/                        # Project documentation
 │   ├── ARCHITECTURE.md          # Technical design document
@@ -100,8 +105,10 @@ CopyDetection-System/
    pip install -r requirements.txt
    ```
 
-3. **Ensure test data exists**
-   - The system requires reference books in `test_data/Excel_Dataset/processed_books_dataset-1.xlsx`
+3. **Verify database exists**
+   - The system uses `database/documents.db` (SQLite) and `database/faiss_index.bin` (FAISS vectors)
+   - **Database is already populated** with 33 reference books (66,847 text chunks)
+   - If database is missing, run: `cd tools && python data_store.py` to rebuild
    - Optional: PDF samples in `test_data/SCI_FI/` for testing
 
 4. **Start the application**
@@ -169,20 +176,11 @@ See [API.md](docs/API.md) for detailed endpoint documentation.
 Core settings in [src/config.py](src/config.py):
 
 ```python
+# Database configuration
+DATABASE_FOLDER = "database"  # SQLite + FAISS storage
+
 # Model configuration
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # SentenceTransformer model
-
-# Text processing constraints
-MIN_TEXT_LENGTH = 50              # Minimum text length for analysis
-MAX_TEXT_LENGTH = 100000          # Maximum text length
-MAX_PDF_PAGES = 25                # Maximum PDF pages to process
-
-# Detection thresholds
-QUICK_FILTER_THRESHOLD = 0.4      # Jaccard threshold for quick filter
-DETAILED_MATCH_THRESHOLD = 0.3    # Threshold for detailed analysis
-
-# Reference data
-DEFAULT_REFERENCE_PATH = "test_data/Excel_Dataset/processed_books_dataset-1.xlsx"
 ```
 
 ## 🛠️ Development
@@ -209,17 +207,18 @@ pytest tests/
 
 ## 📊 Detection Pipeline
 
-The system uses a 3-phase approach:
+The system uses a 3-phase approach with database acceleration:
 
-1. **Quick Filter** - Jaccard + n-gram similarity to reduce candidates
-2. **Detailed Analysis** - Semantic, n-gram, and stylometric scoring
-3. **Risk Scoring** - Weighted combination with classification
+1. **FAISS Semantic Search** - Fast vector similarity search across 66K+ text chunks using pre-computed embeddings
+2. **Document Grouping** - Group matching chunks by source document
+3. **Detailed Analysis** - N-gram, semantic, and stylometric scoring on matched documents
+4. **Risk Scoring** - Weighted combination with classification
 
 Risk levels:
-- **SAFE** (0-20%) - No plagiarism detected
-- **MODERATE** (20-40%) - Minor similar content
-- **HIGH** (40-70%) - Significant plagiarism
-- **CRITICAL** (70-100%) - Severe plagiarism
+- **SAFE** (0-30%) - No plagiarism detected
+- **MODERATE** (30-50%) - Minor similar content
+- **HIGH** (50-75%) - Significant plagiarism
+- **CRITICAL** (75-100%) - Severe plagiarism
 
 ## 🔍 Report Features
 
@@ -237,9 +236,10 @@ Generated reports include:
 
 Key packages (see requirements.txt for complete list):
 
-- **sentence-transformers** - Semantic embeddings
+- **faiss-cpu** (or faiss-gpu) - Fast vector similarity search
+- **sentence-transformers** - Semantic embeddings  
 - **flask** - Web framework
-- **pandas** - Data manipulation
+- **sqlite3** - Document metadata storage (built-in)
 - **nltk** - NLP utilities
 - **pymupdf** - PDF text extraction
 - **numpy** - Numerical computing

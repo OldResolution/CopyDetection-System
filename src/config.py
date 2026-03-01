@@ -1,7 +1,7 @@
 import os
 
-# Reference dataset path (relative to project root)
-DEFAULT_REFERENCE_PATH = os.path.join("test_data", "Excel_Dataset", "processed_books_dataset-1.xlsx")
+# Database configuration (SQLite + FAISS)
+DATABASE_FOLDER = "database"
 
 # Text validation constraints
 MIN_TEXT_LENGTH = 50

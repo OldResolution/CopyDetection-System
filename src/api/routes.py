@@ -1,7 +1,7 @@
 from flask import request, jsonify, render_template
-from src.plagiarism_detection.detector import AdvancedPlagiarismDetector
+from src.plagiarism_detection.db_detector import DatabasePlagiarismDetector
 from src.common.pdf_processor import extract_text_from_pdf
-from src.config import DEFAULT_REFERENCE_PATH, MIN_TEXT_LENGTH
+from src.config import MIN_TEXT_LENGTH
 from src.reporting.generator import generate_detailed_report
 
 # Global Instance
@@ -10,7 +10,7 @@ detector = None
 def get_detector():
     global detector
     if detector is None:
-        detector = AdvancedPlagiarismDetector(DEFAULT_REFERENCE_PATH)
+        detector = DatabasePlagiarismDetector(db_folder="database")
     return detector
 
 def register_routes(app):
@@ -23,7 +23,13 @@ def register_routes(app):
     @app.route('/health')
     def health():
         det = get_detector()
-        return jsonify({'status': 'ok', 'books_loaded': len(det.books_df)})
+        stats = det.get_stats()
+        return jsonify({
+            'status': 'ok', 
+            'documents': stats['documents'],
+            'chunks': stats['chunks_faiss'],
+            'total_words': stats['total_words']
+        })
 
     @app.route('/analyze', methods=['POST'])
     def analyze():
