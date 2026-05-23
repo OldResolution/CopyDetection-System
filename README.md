@@ -255,19 +255,11 @@ Key packages (see requirements.txt for complete list):
 
 See [SETUP.md](docs/SETUP.md) for more help.
 
-## 📝 License
-
-[Add your license here]
 
 ## 👥 Contributors
+John Joy
+Joseph Anthony
+Glen John
+Savin Johnson
 
-[Add contributor information]
-
-## 📧 Contact
-
-[Add contact information]
-
----
-
-**Last Updated**: December 2024  
 **Project Status**: Production-ready with development tools
