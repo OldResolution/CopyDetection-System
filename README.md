@@ -87,57 +87,90 @@ CopyDetection-System/
 └── README.md                    # This file
 ```
 
-## 🏃 Quick Start
+## 🏃 Quick Start (Run locally)
 
-### Prerequisites
-- Python 3.8+
+These steps get the app running locally with a populated database suitable for development and testing.
+
+Prerequisites
+- Python 3.8+ (3.9/3.10 recommended)
 - pip or conda
+- Tesseract OCR installed and on `PATH` (required for `pytesseract` when extracting text from scanned PDFs)
+- (Windows/FAISS) If `faiss-cpu` fails to install via pip, install `faiss` via Conda: `conda install -c pytorch faiss-cpu -y`
 
-### Installation
+1) Create and activate a virtual environment, then install Python dependencies
 
-1. **Clone and navigate to project**
-   ```bash
-   cd CopyDetection-System
-   ```
-
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Verify database exists**
-   - The system uses `database/documents.db` (SQLite) and `database/faiss_index.bin` (FAISS vectors)
-   - **Database is already populated** with 33 reference books (66,847 text chunks)
-   - If database is missing, run: `cd tools && python data_store.py` to rebuild
-   - Optional: PDF samples in `test_data/SCI_FI/` for testing
-
-4. **Start the application**
-   ```bash
-   python start.py
-   ```
-   - Web interface: http://localhost:5001
-   - Health check: http://localhost:5001/health
-
-### Usage Examples
-
-**Via Web Interface:**
-1. Navigate to http://localhost:5001
-2. Enter text to analyze or upload a PDF
-3. Click "Analyze for Plagiarism"
-4. Review results and click "Generate Detailed Report"
-
-**Via REST API:**
 ```bash
-# Analyze text
+python -m venv venv
+venv\Scripts\activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+# Additional packages used by the tools/ingest pipeline
+pip install pandas sentence-transformers python-dotenv tqdm faiss-cpu
+# If faiss-cpu pip package fails on Windows, use conda (recommended):
+# conda install -c pytorch faiss-cpu -y
+```
+
+2) (Optional) Create a `.env` at the repository root to override ingestion settings (example):
+
+```text
+DATA_FOLDER=test_data/Excel_Dataset
+DB_FOLDER=database
+SQLITE_DB_NAME=documents.db
+FAISS_INDEX_NAME=faiss_index.bin
+EMBEDDING_MODEL=all-MiniLM-L6-v2
+CHUNK_SIZE=500
+CHUNK_OVERLAP=50
+SKIP_EXISTING=true
+```
+
+3) Populate the hybrid database (SQLite + FAISS)
+
+```bash
+cd tools
+python data_store.py
+```
+
+This will scan `DATA_FOLDER` (defaults to `test_data/Excel_Dataset`) for `*_clean.txt` and matching `*_metadata.json` files, insert documents into `database/documents.db`, and write the FAISS index files into the `database/` folder.
+
+4) Run the application
+
+Development mode (auto-reload, debug):
+```bash
+cd ..
+python start.py
+```
+
+Production mode (no debug):
+```bash
+python start.py --production
+```
+
+Default host/port: `0.0.0.0:5001` (web UI at http://localhost:5001)
+
+5) Quick smoke tests
+
+- Health check:
+```bash
+curl http://localhost:5001/health
+```
+- Analyze text (JSON):
+```bash
 curl -X POST http://localhost:5001/analyze \
   -H "Content-Type: application/json" \
-  -d '{"text": "Your text here"}'
-
-# Generate report
-curl -X POST http://localhost:5001/report \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Your text here"}'
+  -d '{"essay_text":"Short sample essay text that meets MIN_TEXT_LENGTH"}'
 ```
+- Analyze file upload (text or PDF):
+```bash
+curl -X POST http://localhost:5001/analyze -F "file=@/path/to/sample.txt"
+```
+
+Troubleshooting & notes
+- Model downloads: `sentence-transformers` will download `all-MiniLM-L6-v2` on first use (internet required).
+- Tesseract OCR: Ensure `tesseract` binary is installed and accessible if OCR is needed.
+- FAISS: If you encounter install issues on Windows, prefer Conda as shown above.
+- Ingestion may be CPU/memory intensive—reduce `CHUNK_SIZE` or process smaller batches if necessary.
+
+See the "Development" and "Tools" sections below for additional commands (database viewer, stats, etc.).
 
 ## 🔌 API Endpoints
 
