@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Python 3.8+
+- Python 3.11 recommended for the pinned ML dependencies
 - pip or conda
 
 ## Installation Steps
@@ -22,7 +22,7 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Or using conda
-conda create -n copydetection python=3.9
+conda create -n copydetection python=3.11
 conda activate copydetection
 ```
 
@@ -35,7 +35,7 @@ pip install -r requirements.txt
 ### 4. Verify Installation
 
 ```bash
-python -c "import flask, sentence_transformers, pandas, nltk; print('✓ All dependencies installed')"
+python -c "import flask, sentence_transformers, faiss, nltk; print('All dependencies installed')"
 ```
 
 ## Running the Application
@@ -47,17 +47,16 @@ python start.py
 ```
 
 The app will:
-- Load the reference books dataset
+- Load the canonical SQLite + FAISS database from `database/`
 - Initialize the SentenceTransformer model
 - Start the Flask server on http://localhost:5001
 
 ### First Run
 
-On first run, the app will:
-1. Download the embedding model (~600 MB, one-time)
-2. Download NLTK packages (tokenizer, stopwords)
-3. Load 33 reference books into memory
-4. Initialize Flask routes
+On first run outside Docker, the app may download:
+1. The embedding model cache
+2. NLTK packages (tokenizer, stopwords)
+3. The detector will then read the prebuilt SQLite + FAISS files from `database/`
 
 ### Access the Application
 
@@ -70,17 +69,21 @@ Open your browser and visit:
 Edit `src/config.py` to customize:
 
 ```python
-DEFAULT_REFERENCE_PATH = "test_data/Excel_Dataset/processed_books_dataset-1.xlsx"
+DATABASE_FOLDER = "database"
+DATA_FOLDER = "test_data/Excel_Dataset"
 MIN_TEXT_LENGTH = 50           # Minimum text required (characters)
 MAX_PDF_PAGES = 25             # Maximum pages to extract
 MAX_TEXT_LENGTH = 100000       # Maximum text to analyze (100 KB)
-MODEL_NAME = 'all-MiniLM-L6-v2'  # Sentence-Transformers model
+MODEL_NAME = "all-MiniLM-L6-v2"  # Sentence-Transformers model
 ```
 
 ## Troubleshooting
 
-### Issue: "Can't find reference dataset"
-**Solution:** Ensure `test_data/Excel_Dataset/processed_books_dataset-1.xlsx` exists
+### Issue: "Database is empty"
+**Solution:** Rebuild the canonical store:
+```bash
+python -m tools.data_store
+```
 
 ### Issue: NLTK data not found
 **Solution:** The app auto-downloads. If it fails:
@@ -95,9 +98,10 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 ```
 
 ### Issue: Port 5001 already in use
-**Solution:** Edit `src/main.py` and change the port:
-```python
-app.run(debug=True, host='0.0.0.0', port=5002)
+**Solution:** For local testing, edit the development server port in `src/main.py`.
+For production-style runs, use Gunicorn:
+```bash
+gunicorn -w 4 -b 0.0.0.0:5002 "src.main:app"
 ```
 
 ### Issue: "Model can't download"

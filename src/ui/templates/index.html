@@ -104,8 +104,8 @@
             <div class="upload-section">
                 <div class="section-title">📄 Check Content</div>
                 <div class="input-group">
-                    <label>Paste Text</label>
-                    <textarea id="essayText" placeholder="Paste document text here (min 50 characters)..."></textarea>
+                    <label>Paste Submission Text</label>
+                    <textarea id="submissionText" placeholder="Paste generated output or other submission text here (min 50 characters)..."></textarea>
                 </div>
                 <div class="input-group">
                     <label>Or Upload File (PDF/TXT)</label>
@@ -175,7 +175,7 @@
                             <thead>
                                 <tr>
                                     <th>Linguistic Feature</th>
-                                    <th>Your Text</th>
+                                    <th>Submission</th>
                                 </tr>
                             </thead>
                             <tbody id="featureTableBody"></tbody>
@@ -209,17 +209,17 @@
                 if (file.name.toLowerCase().endsWith('.txt')) {
                     const reader = new FileReader();
                     reader.onload = function(evt) {
-                        document.getElementById('essayText').value = evt.target.result;
+                        document.getElementById('submissionText').value = evt.target.result;
                     };
                     reader.readAsText(file);
                 } else {
-                    document.getElementById('essayText').value = `[${file.name} ready for upload]`;
+                    document.getElementById('submissionText').value = `[${file.name} ready for upload]`;
                 }
             }
         });
 
         function clearForm() {
-            document.getElementById('essayText').value = '';
+            document.getElementById('submissionText').value = '';
             document.getElementById('fileInput').value = '';
             document.getElementById('fileName').textContent = 'No file selected';
             document.getElementById('resultsBox').classList.remove('active');
@@ -231,7 +231,7 @@
 
         async function analyzeText() {
             const fileInput = document.getElementById('fileInput');
-            const textVal   = document.getElementById('essayText').value;
+            const textVal   = document.getElementById('submissionText').value;
 
             if (fileInput.files.length === 0 && textVal.trim().length < 20) {
                 showError("Please enter text or upload a file.");
@@ -257,7 +257,7 @@
                     response = await fetch(API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ essay_text: textVal })
+                        body: JSON.stringify({ submission_text: textVal })
                     });
                 }
 
@@ -289,7 +289,7 @@
         }
 
         function displayResults(data) {
-            let topBook = (data.plagiarized_books && data.plagiarized_books.length > 0) ? data.plagiarized_books[0] : null;
+            let topBook = (data.matched_sources && data.matched_sources.length > 0) ? data.matched_sources[0] : null;
             let combined = data.combined_score || 0;
 
             if (combined < 0.3) { topBook = null; combined = 0; }
@@ -310,24 +310,27 @@
             const recText  = document.getElementById('recText');
             recBox.className = 'recommendation';
 
-            if (combined >= 0.7) {
+            if (data.legal_risk_code === 'NEAR_VERBATIM_REPRODUCTION') {
                 recBox.style.borderLeftColor = '#dc3545';
-                recTitle.innerText = "⚠️ CRITICAL RISK";
-                recText.innerText  = "High probability of copyright infringement found in database.";
-            } else if (combined >= 0.4) {
+                recTitle.innerText = "Near-verbatim reproduction";
+                recText.innerText  = data.legal_rationale || "Dense phrase overlap suggests direct reuse of protected expression.";
+            } else if (data.legal_risk_code === 'SUBSTANTIAL_SIMILARITY') {
                 recBox.style.borderLeftColor = '#ffc107';
-                recTitle.innerText = "⚡ Moderate Risk";
-                recText.innerText  = "Stylistic or semantic similarities detected. Verify sources.";
+                recTitle.innerText = "Substantial similarity in protectable expression";
+                recText.innerText  = data.legal_rationale || "Meaning-level overlap suggests derivative rewriting concerns.";
+            } else if (data.legal_risk_code === 'THEMATIC_OR_STYLISTIC_INFLUENCE') {
+                recBox.style.borderLeftColor = '#17a2b8';
+                recTitle.innerText = "Thematic or stylistic influence";
+                recText.innerText  = data.legal_rationale || "This looks closer to influence than actionable copying.";
             } else {
                 recBox.style.borderLeftColor = '#28a745';
-                recTitle.innerText = "✅ Safe / Original";
-                recText.innerText  = "No significant matches found in the copyright database.";
+                recTitle.innerText = "No actionable similarity";
+                recText.innerText  = data.legal_rationale || "No significant matched source work was found.";
             }
 
-            // Books list
             const list = document.getElementById('booksList');
             list.innerHTML = "";
-            const validBooks = (data.plagiarized_books || []).filter(b => b.combined_score >= 0.3);
+            const validBooks = (data.matched_sources || []).filter(b => b.combined_score >= 0.3);
 
             if (validBooks.length > 0) {
                 validBooks.forEach(book => {
@@ -335,34 +338,34 @@
                     list.innerHTML += `
                         <div class="book-item">
                             <div class="book-header">
-                                <span class="book-title">${book.book_title}</span>
-                                <span class="badge" style="background:${badgeColor}">Match: ${(book.combined_score*100).toFixed(0)}%</span>
+                                <span class="book-title">${book.source_title}</span>
+                                <span class="badge" style="background:${badgeColor}">${book.risk_level}</span>
                             </div>
-                            <div style="font-size:0.9em; color:#666;">Author: ${book.book_author}</div>
+                            <div style="font-size:0.9em; color:#666;">Author/creator: ${book.source_author || 'Unknown'}</div>
+                            <div style="font-size:0.85em; color:#666;">Type: ${book.source_type} | License: ${book.license_status} | Copyright: ${book.copyright_status}</div>
                             <div style="margin-top:5px; font-size:0.85em; color:#444;">
+                                Match: ${(book.combined_score*100).toFixed(0)}% |
                                 N-gram: ${(book.ngram_score*100).toFixed(1)}% |
-                                Stylo: ${(book.stylometric_score*100).toFixed(1)}% |
+                                Stylometry: ${(book.stylometric_score*100).toFixed(1)}% |
                                 Semantic: ${(book.semantic_score*100).toFixed(1)}%
                             </div>
+                            <div style="margin-top:6px; font-size:0.82em; color:#555;">${book.legal_rationale || ''}</div>
                         </div>`;
                 });
             } else {
-                list.innerHTML = `<div style="padding:15px; color:#666; font-style:italic;">No significant database match found.</div>`;
+                list.innerHTML = `<div style="padding:15px; color:#666; font-style:italic;">No significant matched source work found.</div>`;
             }
 
-            // Features table
             const tbody = document.getElementById('featureTableBody');
             tbody.innerHTML = "";
-            if (data.feature_names && data.essay_features) {
+            if (data.feature_names && data.submission_features) {
                 data.feature_names.forEach((name, i) => {
-                    let val = data.essay_features[i] || 0;
+                    let val = data.submission_features[i] || 0;
                     tbody.innerHTML += `<tr><td>${name}</td><td>${val.toFixed(2)}</td></tr>`;
                 });
             }
 
             document.getElementById('resultsBox').classList.add('active');
-
-            // Show the Generate Report button
             document.getElementById('reportCta').classList.add('visible');
         }
 

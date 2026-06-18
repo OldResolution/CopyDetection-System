@@ -497,24 +497,34 @@ function renderReport(d) {
   renderParaphrase(d.paraphrased_segments);
   renderHeatmap(d.sentence_risk_map);
   renderVocab(d.vocabulary_stats);
-  renderSources(d.matched_books);
+  renderSources(d.matched_sources);
 }
 
 // ── 1. Summary ───────────────────────────────────────────────────────────────
 function renderSummary(s) {
   const score = (s.combined_score || 0) * 100;
-  const riskClass = score >= 70 ? 'risk-high' : score >= 40 ? 'risk-medium' : 'risk-low';
-  const riskLabel = score >= 70 ? '🔴 HIGH RISK' : score >= 40 ? '🟡 MODERATE RISK' : '🟢 LOW RISK';
+  const riskClass = s.legal_risk_code === 'NEAR_VERBATIM_REPRODUCTION'
+    ? 'risk-high'
+    : s.legal_risk_code === 'SUBSTANTIAL_SIMILARITY'
+    ? 'risk-medium'
+    : 'risk-low';
+  const riskLabel = s.risk_level || 'no actionable similarity detected';
   document.getElementById('riskBadgeTop').innerHTML =
-    `<span class="risk-badge ${riskClass}">${riskLabel}</span>`;
+    `<span class="risk-badge ${riskClass}">${escHtml(riskLabel)}</span>`;
 
   document.getElementById('summaryGrid').innerHTML = `
     ${statCard('Infringement Risk', score.toFixed(1) + '%', '', score >= 70 ? 'val-red' : score >= 40 ? 'val-yellow' : 'val-green')}
     ${statCard('Matched Sources', s.matched_sources, 'above 30% threshold', 'val-blue')}
+    ${statCard('Lead Source Work', s.top_source_work || 'none', '', 'val-purple')}
     ${statCard('Total Words', s.total_words.toLocaleString(), '', 'val-blue')}
     ${statCard('Unique Words', s.unique_words.toLocaleString(), '', 'val-purple')}
     ${statCard('Sentences', s.total_sentences, '', 'val-blue')}
   `;
+
+  if (s.legal_rationale) {
+    document.getElementById('summaryGrid').innerHTML +=
+      `<div style="grid-column:1 / -1; color:var(--muted); font-size:.9rem;">${escHtml(s.legal_rationale)}</div>`;
+  }
 }
 
 function statCard(label, value, sub, cls) {

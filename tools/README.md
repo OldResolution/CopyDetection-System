@@ -4,8 +4,8 @@ This directory contains development and administrative tools for managing the Co
 
 ## Files
 
-### `data_store.py` (696 lines)
-**Purpose:** Hybrid data storage system combining SQLite + FAISS vector database  
+### `data_store.py`
+**Purpose:** Thin CLI wrapper around `src.storage.hybrid_store.HybridDataStore`  
 **Use Cases:**
 - Building and maintaining vector embeddings for semantic search
 - Ingesting new documents into the database
@@ -64,11 +64,13 @@ python -m tools.db_info
 ### `.env`
 Configuration file for database utilities (not tracked in git)
 
-### `database/` 
-Generated at runtime by `data_store.py`:
+### Database location
+The canonical database is `../database/` at the repository root:
 - `documents.db` - SQLite database
 - `faiss_index.bin` - FAISS vector index
 - `faiss_ids.pkl` - Vector ID mapping
+
+`tools/database/` is ignored and should not be used for runtime data.
 
 ## Setup
 
@@ -80,7 +82,7 @@ Generated at runtime by `data_store.py`:
 2. **Configure `.env`:**
    ```env
    DATA_FOLDER=../test_data/Excel_Dataset
-   DB_FOLDER=./database
+   DB_FOLDER=../database
    SQLITE_DB_NAME=documents.db
    FAISS_INDEX_NAME=faiss_index.bin
    EMBEDDING_MODEL=all-MiniLM-L6-v2

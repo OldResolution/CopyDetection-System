@@ -1,274 +1,160 @@
-# CopyDetection-System Documentation
+# CopyDetection-System Architecture
 
-## 📋 Quick Start
+## Runtime Shape
 
-1. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Run the application:**
-   ```bash
-   python start.py
-   ```
-
-3. **Access the web UI:**
-   - Open http://localhost:5001 in your browser
-
-## 📁 Project Structure
+The application is a Flask service with a database-backed plagiarism detector.
+The current runtime detector is `src/plagiarism_detection/db_detector.py`, not
+the deprecated in-memory detector in `src/plagiarism_detection/detector.py`.
 
 ```
 CopyDetection-System/
-├── src/                           # Production source code
-│   ├── main.py                    # Flask app entry point
-│   ├── config.py                  # Configuration constants
-│   ├── api/routes.py              # Flask API endpoints
-│   ├── plagiarism_detection/      # Detection engine
-│   │   └── detector.py            # AdvancedPlagiarismDetector class
-│   ├── reporting/                 # Report generation
-│   │   └── generator.py           # Detailed analysis reports
-│   ├── common/                    # Shared utilities
-│   │   ├── text_processor.py      # Text preprocessing
-│   │   ├── metrics.py             # Similarity metrics
-│   │   └── pdf_processor.py       # PDF extraction
-│   └── ui/templates/              # HTML templates
-│       ├── index.html             # Main analyzer UI
-│       └── report_viewer.html     # Detailed report viewer
-│
-├── tools/                         # Development & admin utilities
-│   ├── data_store.py              # Hybrid SQLite + FAISS storage
-│   ├── db_viewer.py               # Streamlit database explorer
-│   ├── db_info.py                 # CLI database statistics
-│   └── pdf.py                     # Advanced PDF extraction (optional)
-│
-├── test_data/                     # Reference data & test files
-│   ├── Excel_Dataset/             # Core reference books dataset (REQUIRED)
-│   └── SCI_FI/                    # Sample PDF test files
-│
-├── tests/                         # Unit & integration tests (future)
-├── docs/                          # Documentation
-├── start.py                       # Application entry point
-├── requirements.txt               # Python dependencies
-├── README.md                      # Project README
-└── .gitignore                     # Git ignore rules
+|-- src/
+|   |-- main.py                         # Flask app factory and local dev server
+|   |-- config.py                       # Runtime configuration and env defaults
+|   |-- api/routes.py                   # HTTP endpoints
+|   |-- plagiarism_detection/
+|   |   |-- db_detector.py              # Active detector: SQLite + FAISS
+|   |   `-- detector.py                 # Deprecated/reference detector
+|   |-- storage/
+|   |   `-- hybrid_store.py             # HybridDataStore runtime dependency
+|   |-- common/
+|   |   |-- metrics.py                  # N-gram and stylometric scoring
+|   |   |-- pdf_processor.py            # PDF text extraction
+|   |   `-- text_processor.py           # Tokenization and preprocessing
+|   |-- reporting/generator.py          # Detailed report generation
+|   `-- ui/
+|       |-- templates/                  # HTML templates
+|       `-- static/                     # Static assets
+|-- database/                           # Canonical SQLite + FAISS store
+|-- tools/                              # Admin utilities and rebuild commands
+|-- tests/                              # Unit and API integration tests
+|-- Dockerfile
+|-- docker-compose.yml
+`-- requirements.txt
 ```
 
-## 🔍 How It Works
+## Canonical Database Location
 
-### Detection Pipeline
+`database/` at the repository root is the canonical runtime data store.
+It contains:
 
-The system uses a three-phase approach:
+- `documents.db`: SQLite document, metadata, and chunk records
+- `faiss_index.bin`: FAISS vector index
+- `faiss_ids.pkl`: FAISS index position to chunk ID mapping
 
-**Phase 1: Quick Filter**
-- Jaccard similarity of token sets
-- N-gram overlap scoring (bigrams)
-- Narrows candidates to top 50 books
+`tools/database/` is intentionally ignored. It was a duplicate generated
+location from earlier tooling and should not be used for runtime data.
 
-**Phase 2: Detailed Analysis**
-For each candidate:
-1. **Semantic Score** (60% weight)
-   - SentenceTransformer embeddings
-   - Compares essay to multiple text chunks
-   - Chunks from different parts of reference book
+## Storage Layer
 
-2. **N-gram Score** (20% weight)
-   - Trigram overlap coefficient
-   - Detects copied phrases
+`src/storage/hybrid_store.py` owns `HybridDataStore`.
 
-3. **Stylometric Score** (20% weight)
-   - 7-feature writing style vector:
-     - Average word length
-     - Average sentence length (log-scaled)
-     - Type-Token ratio (vocabulary diversity)
-     - Stopword ratio
-     - Punctuation ratio
-     - Unique word ratio
-     - Sentence count (log-scaled)
-   - Cosine similarity between essay and book
+The store combines:
 
-**Phase 3: Scoring & Risk Classification**
-- Combined weighted score (0-1)
-- Deduplication: filters duplicate book titles
-- Risk levels:
-  - **SAFE** (< 0.3): No significant match
-  - **MODERATE** (0.3-0.5): Stylistic or semantic similarities
-  - **HIGH** (0.5-0.75): Strong evidence of infringement
-  - **CRITICAL** (≥ 0.75): High probability of copied content
+- SQLite for document metadata, full cleaned text, and chunk text.
+- FAISS for normalized sentence-transformer embeddings of chunks.
+- A pickle ID map that links FAISS vector positions back to SQLite chunk IDs.
 
-### REST API Endpoints
-
-#### `POST /analyze`
-Submit text/PDF for plagiarism analysis
-
-**Request:**
-- File upload (`.pdf` or `.txt`) OR JSON with `essay_text` field
-
-**Response:**
-```json
-{
-  "combined_score": 0.75,
-  "risk_level": "HIGH",
-  "top_source": "Book Title by Author",
-  "plagiarized_books": [
-    {
-      "book_title": "...",
-      "book_author": "...",
-      "combined_score": 0.75,
-      "risk_level": "HIGH",
-      "ngram_score": 0.6,
-      "semantic_score": 0.8,
-      "stylometric_score": 0.5
-    }
-  ],
-  "feature_names": [...],
-  "essay_features": [...],
-  "extracted_text": "..."  // For PDF uploads
-}
-```
-
-#### `POST /report`
-Generate detailed analysis report
-
-**Request:**
-```json
-{
-  "text": "original essay text",
-  "analysis": { ...analysis response from /analyze... }
-}
-```
-
-**Response:** Detailed report with:
-- N-gram frequency tables
-- Highlighted repeated phrases
-- Paraphrased segment detection
-- Sentence-level risk heatmap
-- Vocabulary & readability statistics
-
-#### `GET /`
-Serve main analyzer UI (index.html)
-
-#### `GET /health`
-Health check with loaded books count
-
-## ⚙️ Configuration
-
-Edit `src/config.py`:
-
-```python
-DEFAULT_REFERENCE_PATH = "test_data/Excel_Dataset/processed_books_dataset-1.xlsx"
-MIN_TEXT_LENGTH = 50                      # Minimum characters required
-MAX_PDF_PAGES = 25                        # Max pages to extract from PDF
-MAX_TEXT_LENGTH = 100000                  # Max characters to analyze (100 KB)
-MODEL_NAME = 'all-MiniLM-L6-v2'          # Sentence-Transformers model
-MAX_ANALYZE_UPLOAD_SIZE = 16 * 1024 * 1024  # 16 MB file limit
-```
-
-## 📦 Dependencies
-
-Key packages:
-- `Flask` - Web framework
-- `sentence-transformers` - Semantic embeddings
-- `pandas` - Data handling
-- `nltk` - Natural language processing
-- `numpy` - Numerical computing
-- `PyMuPDF` - PDF text extraction
-
-See `requirements.txt` for full list.
-
-## 🧪 Testing
+The rebuild command is kept as a thin admin wrapper:
 
 ```bash
-# Run tests (future)
-pytest tests/
-
-# Test the API
-curl -X POST http://localhost:5001/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"essay_text": "Your text here..."}'
+python -m tools.data_store
 ```
 
-## 🛠️ Development Tools
+Configuration comes from environment variables with repo-root defaults:
 
-### Database Viewer (Streamlit)
-```bash
-cd tools
-streamlit run db_viewer.py
-```
-Opens interactive dashboard at http://localhost:8501
+- `DATA_FOLDER`, default `test_data/Excel_Dataset`
+- `DATABASE_FOLDER` or `DB_FOLDER`, default `database`
+- `SQLITE_DB_NAME`, default `documents.db`
+- `FAISS_INDEX_NAME`, default `faiss_index.bin`
+- `FAISS_IDS_NAME`, default `faiss_ids.pkl`
+- `EMBEDDING_MODEL`, default `all-MiniLM-L6-v2`
+- `CHUNK_SIZE`, default `500`
+- `CHUNK_OVERLAP`, default `50`
+- `SKIP_EXISTING`, default `true`
 
-### Database Info (CLI)
-```bash
-python tools/db_info.py
-```
-Displays SQLite and FAISS statistics
+## Active Detection Flow
 
-## 📝 API Response Walkthrough
+`DatabasePlagiarismDetector.analyze_text()` performs four stages:
 
-### Analysis Response Structure
-```json
-{
-  "feature_names": [
-    "Avg Word Len",           // Average word length in characters
-    "Avg Sent Len (Log)",     // Log-scaled average sentence length
-    "Type-Token",             // TTR: unique words / total words
-    "Stopwords",              // Ratio of stopwords (function words)
-    "Punctuation",            // Ratio of punctuation marks
-    "Unique Words",           // Ratio of unique words
-    "Sent Count (Log)"        // Log-scaled number of sentences
-  ],
-  "essay_features": [4.2, 1.8, 0.6, 0.3, 0.05, 0.6, 2.1],
-  "combined_score": 0.75,    // Final plagiarism likelihood (0-1)
-  "risk_level": "HIGH",
-  "top_source": "Book Title by Author Name",
-  "plagiarized_books": [
-    {
-      "book_title": "...",
-      "book_author": "...",
-      "combined_score": 0.75,  // Weighted combination of three signals
-      "risk_level": "HIGH",
-      "ngram_score": 0.6,      // Phrase overlap (0-1)
-      "semantic_score": 0.8,   // Meaning similarity (0-1)
-      "stylometric_score": 0.5 // Writing style similarity (0-1)
-    }
-  ]
-}
-```
+1. Extract features from the submitted essay.
+   - Raw tokens and stopword-filtered tokens come from `preprocess_text`.
+   - Stylometric features come from `extract_stylometric_features`.
 
-### Report Response Structure
-Detailed report includes:
-- **Summary**: Overall statistics, readability (Flesch score)
-- **N-gram Frequency**: Bigrams, trigrams, 4-grams with densities
-- **Repeated Phrases**: Color-coded by frequency tier
-- **Paraphrased Segments**: Suspicious sentences with 4-part analysis
-  - Vocabulary substitution score
-  - Content divergence score
-  - Structural patterns (passive voice, nominalization)
-  - N-gram novelty vs. neighbors
-- **Sentence Risk Heatmap**: Per-sentence risk scoring
-- **Vocabulary Stats**: TTR, hapax legomena, readability, top 50 words
-- **Matched Books**: Detailed source matching
+2. Run semantic search against FAISS.
+   - The first 5000 characters of the essay are embedded.
+   - The top 100 matching chunks are retrieved from the vector index.
 
-See `templates/report_viewer.html` for full UI implementation.
+3. Group matches by source document and run detailed scoring.
+   - Full document text is loaded from SQLite.
+   - Semantic score is the best FAISS chunk similarity for that document.
+   - N-gram score uses trigram overlap between essay tokens and book tokens.
+   - Stylometric score uses cosine similarity over the seven-style-feature vector.
 
-## 🚀 Production Deployment
+4. Weight and classify results.
+   - Strong semantic matches emphasize semantic similarity.
+   - Strong phrase overlap emphasizes n-gram similarity.
+   - Weak semantic and weak n-gram matches are penalized.
+   - Matches below `0.3` combined score are filtered out.
+
+Risk levels:
+
+- `SAFE`: below `0.3`
+- `MODERATE`: `0.3` to below `0.5`
+- `HIGH`: `0.5` to below `0.75`
+- `CRITICAL`: `0.75` and above
+
+## API Endpoints
+
+- `GET /`: serves the analyzer UI.
+- `GET /health`: initializes the detector and returns database counts.
+- `POST /analyze`: accepts JSON `essay_text` or `.txt`/`.pdf` upload, then
+  returns analysis plus `extracted_text`.
+- `GET /report-viewer`: serves the report UI.
+- `POST /report`: builds the detailed report from submitted text and the
+  `/analyze` response.
+
+The detector is lazy-loaded in `src/api/routes.py` so tests and lightweight
+imports do not load FAISS or the embedding model until analysis is needed.
+
+## Deployment
+
+Local testing can use:
 
 ```bash
-# Run in production mode
+python start.py
+```
+
+Production-style execution should use Gunicorn:
+
+```bash
 python start.py --production
 ```
 
-For Gunicorn:
+or directly:
+
 ```bash
 gunicorn -w 4 -b 0.0.0.0:5001 "src.main:app"
 ```
 
-## 📚 References
+The Docker image uses `python:3.11-slim`, installs pinned dependencies,
+downloads NLTK data, and preloads the `all-MiniLM-L6-v2` model cache during
+build so container cold-starts are not dependent on network downloads.
 
-- **Sentence-Transformers**: https://www.sbert.net/
-- **FAISS**: https://github.com/facebookresearch/faiss
-- **NLTK**: https://www.nltk.org/
-- **Flask**: https://flask.palletsprojects.com/
+```bash
+docker compose up --build
+```
 
-## 📄 License
+## Tests
 
-See project documentation for license information.
+The baseline test suite covers:
+
+- Pure metric functions in `src/common/metrics.py`.
+- API integration for `/analyze` and `/report` using a small fixture text and
+  fake detector.
+
+Run:
+
+```bash
+pytest
+```

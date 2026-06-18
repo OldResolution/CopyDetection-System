@@ -59,7 +59,7 @@ CopyDetection-System/
 │
 ├── tools/                        # Development utilities (optional)
 │   ├── __init__.py
-│   ├── data_store.py            # SQLite + FAISS vector database
+│   ├── data_store.py            # Rebuild wrapper for SQLite + FAISS store
 │   ├── db_viewer.py             # Streamlit database explorer
 │   ├── db_info.py               # CLI database statistics
 │   └── pdf.py                   # Advanced PDF extraction with OCR
@@ -126,8 +126,7 @@ SKIP_EXISTING=true
 3) Populate the hybrid database (SQLite + FAISS)
 
 ```bash
-cd tools
-python data_store.py
+python -m tools.data_store
 ```
 
 This will scan `DATA_FOLDER` (defaults to `test_data/Excel_Dataset`) for `*_clean.txt` and matching `*_metadata.json` files, insert documents into `database/documents.db`, and write the FAISS index files into the `database/` folder.
@@ -140,7 +139,7 @@ cd ..
 python start.py
 ```
 
-Production mode (no debug):
+Production mode (Gunicorn, no debug):
 ```bash
 python start.py --production
 ```

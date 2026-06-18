@@ -4,14 +4,22 @@ CopyDetection-System: Entry Point
 Runs the Flask web application.
 """
 import sys
-from src.main import app, run_app
+import subprocess
+from src.main import run_app
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == '--production':
-        # Production mode
-        print("[INFO] Starting in production mode...")
-        app.run(debug=False, host='0.0.0.0', port=5001)
+        print("[INFO] Starting production server with Gunicorn...")
+        raise SystemExit(subprocess.call([
+            sys.executable,
+            "-m",
+            "gunicorn",
+            "-w",
+            "4",
+            "-b",
+            "0.0.0.0:5001",
+            "src.main:app",
+        ]))
     else:
-        # Development mode
-        print("[INFO] Starting in development mode...")
+        print("[INFO] Starting local development server...")
         run_app()

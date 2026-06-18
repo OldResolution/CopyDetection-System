@@ -1,7 +1,6 @@
 from flask import request, jsonify, render_template
-from src.plagiarism_detection.db_detector import DatabasePlagiarismDetector
 from src.common.pdf_processor import extract_text_from_pdf
-from src.config import MIN_TEXT_LENGTH
+from src.config import DATABASE_FOLDER, MIN_TEXT_LENGTH
 from src.reporting.generator import generate_detailed_report
 
 # Global Instance
@@ -10,7 +9,9 @@ detector = None
 def get_detector():
     global detector
     if detector is None:
-        detector = DatabasePlagiarismDetector(db_folder="database")
+        from src.plagiarism_detection.db_detector import DatabasePlagiarismDetector
+
+        detector = DatabasePlagiarismDetector(db_folder=DATABASE_FOLDER)
     return detector
 
 def register_routes(app):
@@ -42,7 +43,12 @@ def register_routes(app):
                 elif file.filename.endswith('.txt'):
                     text = file.read().decode('utf-8')
             elif request.is_json:
-                text = request.get_json().get('essay_text', '')
+                payload = request.get_json() or {}
+                text = (
+                    payload.get('submission_text')
+                    or payload.get('generated_output')
+                    or payload.get('essay_text', '')
+                )
 
             if len(text) < MIN_TEXT_LENGTH:
                 return jsonify({'error': f"Text too short. Min {MIN_TEXT_LENGTH} chars required."}), 400
@@ -51,7 +57,7 @@ def register_routes(app):
             # Run Analysis
             analysis_result = det.analyze_text(text)
             
-            # MUST return the extracted text so the frontend can use it for the detailed report!
+            # Return the extracted text so the frontend can use it for the detailed report.
             analysis_result['extracted_text'] = text
             
             return jsonify(analysis_result)

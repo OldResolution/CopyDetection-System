@@ -158,7 +158,7 @@ def highlight_text_with_repeated_phrases(text: str, repeated_phrases: list[dict]
 
 
 def detect_paraphrased_segments(
-    text: str, matched_books: list[dict], threshold: float = 0.18
+    text: str, matched_sources: list[dict], threshold: float = 0.18
 ) -> list[dict]:
     """
     Detects potentially paraphrased sentences using four independent signals:
@@ -184,8 +184,8 @@ def detect_paraphrased_segments(
     total_words = max(len(all_tokens), 1)
 
     # Book semantic score as a global booster
-    best_sem = max((b.get("semantic_score", 0) for b in matched_books), default=0) if matched_books else 0
-    best_combined = max((b.get("combined_score", 0) for b in matched_books), default=0) if matched_books else 0
+    best_sem = max((b.get("semantic_score", 0) for b in matched_sources), default=0) if matched_sources else 0
+    best_combined = max((b.get("combined_score", 0) for b in matched_sources), default=0) if matched_sources else 0
 
     # Pre-tokenize all sentences for n-gram context comparison
     sent_tokens = [_tokenize(s) for s in sentences]
@@ -416,27 +416,31 @@ def generate_detailed_report(text: str, analysis: dict) -> dict:
     
     Parameters
     ----------
-    text     : The raw essay / submitted text.
+    text     : The raw submitted text.
     analysis : The JSON dict previously returned by /analyze endpoint.
     
     Returns
     -------
     A dict ready to be jsonify()'d and consumed by the frontend report viewer.
     """
-    matched_books = analysis.get("plagiarized_books", [])
+    matched_sources = analysis.get("matched_sources", [])
 
     # Core computations
     ngram_freq      = ngram_frequency_analysis(text)
     repeated        = find_repeated_phrases(text)
     highlighted_html= highlight_text_with_repeated_phrases(text, repeated)
-    paraphrased     = detect_paraphrased_segments(text, matched_books)
+    paraphrased     = detect_paraphrased_segments(text, matched_sources)
     vocab           = vocabulary_stats(text)
     sent_risk       = sentence_risk_map(text, repeated)
 
     return {
         "summary": {
             "combined_score":   analysis.get("combined_score", 0),
-            "matched_sources":  len([b for b in matched_books if b.get("combined_score", 0) >= 0.3]),
+            "risk_level":       analysis.get("risk_level", "no actionable similarity detected"),
+            "legal_risk_code":  analysis.get("legal_risk_code", "NO_ACTIONABLE_SIMILARITY"),
+            "legal_rationale":  analysis.get("legal_rationale", ""),
+            "top_source_work":  analysis.get("top_source_work", "No significant source-work match found"),
+            "matched_sources":  len([b for b in matched_sources if b.get("combined_score", 0) >= 0.3]),
             "total_sentences":  vocab.get("total_sentences", 0),
             "total_words":      vocab.get("total_tokens", 0),
             "unique_words":     vocab.get("unique_words", 0),
@@ -449,7 +453,7 @@ def generate_detailed_report(text: str, analysis: dict) -> dict:
         "paraphrased_segments":  paraphrased,
         "vocabulary_stats":      vocab,
         "sentence_risk_map":     sent_risk,
-        "matched_books":         matched_books,
+        "matched_sources":       matched_sources,
         "feature_names":         analysis.get("feature_names", []),
-        "essay_features":        analysis.get("essay_features", []),
+        "submission_features":   analysis.get("submission_features", []),
     }

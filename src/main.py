@@ -29,7 +29,8 @@ def run_app():
     """Run the Flask development server."""
     # Initialize detector on startup
     get_detector()
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    debug = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    app.run(debug=debug, host='0.0.0.0', port=5001)
 
 if __name__ == '__main__':
     run_app()

@@ -9,7 +9,10 @@ try:
 except Exception as e:
     print(f"Warning: NLTK download failed: {e}")
 
-STOP_WORDS = set(nltk.corpus.stopwords.words('english'))
+try:
+    STOP_WORDS = set(nltk.corpus.stopwords.words('english'))
+except Exception:
+    STOP_WORDS = set()
 
 def preprocess_text(text, remove_stopwords=True):
     try:

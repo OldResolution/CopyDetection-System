@@ -3,6 +3,9 @@ venv/
 env/
 .env
 
+# Canonical runtime database lives in /database.
+tools/database/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
