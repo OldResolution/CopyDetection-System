@@ -1,0 +1,3 @@
+"""
+REST API endpoints module.
+"""
