@@ -1,0 +1,15 @@
+services:
+  copy-detection:
+    build: .
+    ports:
+      - "5001:5001"
+    environment:
+      DATABASE_FOLDER: /app/database
+      DB_FOLDER: /app/database
+      DATA_FOLDER: /app/test_data/Excel_Dataset
+      NLTK_DATA: /opt/nltk_data
+      HF_HOME: /opt/hf_cache
+      SENTENCE_TRANSFORMERS_HOME: /opt/hf_cache
+    volumes:
+      - ./database:/app/database
+      - ./test_data:/app/test_data:ro
